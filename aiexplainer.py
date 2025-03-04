@@ -97,7 +97,7 @@ def get_ai_answer(api_key: str, base_url: str, model_name: str, prompt_prefix: s
     base64_image = encode_image_to_base64(screenshot)
     image_data_url = f"data:image/png;base64,{base64_image}"
 
-    # Build the JSON payload (OpenAI-compatible message format).
+    # Build the JSON payload (using an OpenAI-compatible message format).
     payload = {
         "model": model_name,
         "messages": [
@@ -115,7 +115,7 @@ def get_ai_answer(api_key: str, base_url: str, model_name: str, prompt_prefix: s
         response = requests.post(api_endpoint, headers=headers, json=payload)
         response.raise_for_status()
         result = response.json()
-        # Extract answer from the response (adjust extraction if the format differs).
+        # Extract the answer from the response (adjust extraction based on your API's response format).
         answer = result.get("choices", [{}])[0].get("message", {}).get("content", "No answer in response")
         return answer
     except requests.exceptions.RequestException as e:
@@ -126,16 +126,22 @@ def get_ai_answer(api_key: str, base_url: str, model_name: str, prompt_prefix: s
 def main():
     # Ask the user for configuration values.
     prompt_prefix, api_key, base_url, model_name, ai_name = get_terminal_inputs()
-    
-    # Capture the screenshot based on user-selected region.
-    screenshot = capture_screenshot_with_region()
-    
-    print("Sending prompt and image to AI model...")
-    answer = get_ai_answer(api_key, base_url, model_name, prompt_prefix, screenshot)
-    
-    print("\n--- AI Response ---")
-    print(answer)
-    print("\n--- Program End ---")
+
+    # Loop until the user decides to stop.
+    while True:
+        command = input("Type 'screenshot' to capture a screenshot or 'stop' to exit: ").strip().lower()
+        if command == "stop":
+            print("Exiting program.")
+            break
+        elif command == "screenshot":
+            screenshot = capture_screenshot_with_region()
+            print("Sending prompt and image to AI model...")
+            answer = get_ai_answer(api_key, base_url, model_name, prompt_prefix, screenshot)
+            print("\n--- AI Response ---")
+            print(answer)
+            print("\n-------------------")
+        else:
+            print("Invalid command. Please type 'screenshot' or 'stop'.")
 
 if __name__ == "__main__":
     main()
